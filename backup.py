@@ -92,7 +92,7 @@ def zip_folder(folder_path, output_path):
     # путь к папке
     contents = os.walk(folder_path)
     try:
-        zip_file = zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED)
+        zip_file = zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True)
         for root, folders, files in contents:
             # Добавить все подпапки, включая пустые.
             for folder_name in folders:
@@ -113,13 +113,7 @@ def zip_folder(folder_path, output_path):
                 zip_file.write(absolute_path, relative_path)
         add_arv_msg_02 = u"Архив %s успешно создан." % output_path.replace(PROJECT_PATH,'')
         logging.info(add_arv_msg_02)
-    except IOError, message:
-        logging.error(message)
-        sys.exit(1)
-    except OSError, message:
-        logging.error(message)
-        sys.exit(1)
-    except zipfile.BadZipfile, message:
+    except (IOError, OSError, zipfile.BadZipfile, zipfile.LargeZipFile), message:
         logging.error(message)
         sys.exit(1)
     finally:
