@@ -4,18 +4,14 @@ ORACLE cold backup
 
 Как работает:
 -------------
-    #. Останавливает БД
-    #. Архивирует нужные папки
-    #. Переносит архивы на удалённый сервер
-    #. Запускает БД
+    1. Останавливает БД
+    2. Архивирует нужные папки
+    3. Переносит архивы на удалённый сервер
+    4. Запускает БД
 
     Все операции логируются.
 
 Для работы понадобится:
 -----------------------
-    #. wmi
-    #. pywin32_
-    .. _pywin32: http://sourceforge.net/projects/pywin32/files/
-
-
-This file was modified by PyCharm 2.0.1 for binding GitHub repository
+    1. pip install wmi
+    2. pywin32 (http://sourceforge.net/projects/pywin32/files/)
