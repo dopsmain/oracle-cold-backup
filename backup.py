@@ -120,6 +120,19 @@ def zip_folder(folder_path, output_path):
         zip_file.close()
 ########## END MAKE ARHIVE
 
+########## DEL OLD ORACLE LOG
+def del_log_file(folder):
+    for the_file in os.listdir(folder):
+        file_path = os.path.join(folder, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+                del_file_msg_01 = u"Файл %s удален." % the_file
+                logging.info(del_file_msg_01)
+        except Exception, message:
+            logging.error(message)
+########## END DEL OLD ORACLE LOG
+
 ########## RUN
 if __name__ == '__main__':
     # Остановка службы
@@ -128,6 +141,8 @@ if __name__ == '__main__':
     zip_folder(path_src_dir_DB, file_backup_db)
     # Архивация LOG
     zip_folder(path_src_dir_LOG, file_backup_log)
+    # Чистка логов
+    del_log_file(path_src_dir_LOG)
     # Перенос DB архива на другой сервер, с логированием
     try:
         shutil.move(file_backup_db, share_server)
