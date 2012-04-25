@@ -8,30 +8,30 @@ import sys
 import shutil
 
 ########## MAIN CONFIGURATION
-service_name = 'Service Name' #Имя сервиса Oracle
-date = time.strftime('%d.%m.%Y') #определение времени создания
-date_time = time.strftime('%d.%m.%Y_%H.%M.%S') #определение времени создания
+service_name = 'Service Name' # Имя сервиса Oracle
+date = time.strftime('%d.%m.%Y') # Текущая дата
+date_time = time.strftime('%d.%m.%Y_%H.%M.%S') # Текущая дата и время
 ########## END MAIN CONFIGURATION
 
 ########## PATH CONFIGURATION
-PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
+PROJECT_PATH = os.path.abspath(os.path.dirname(__file__)) # Полнуй путь к oracle-cold-backup
 
-path_archive_dir_DB = os.path.join(PROJECT_PATH, "DB/")
-path_archive_dir_LOG = os.path.join(PROJECT_PATH, "LOG/")
+path_archive_dir_DB = os.path.join(PROJECT_PATH, "DB/") # Полнуй путь к oracle-cold-backup/DB/
+path_archive_dir_LOG = os.path.join(PROJECT_PATH, "LOG/") # Полнуй путь к oracle-cold-backup/LOG/
 
-file_backup_db = os.path.join(path_archive_dir_DB, "%s_%s_DB.zip") % (date_time, service_name,)
-file_backup_log = os.path.join(path_archive_dir_LOG, "%s_%s_LOG.zip") % (date_time, service_name,)
+file_backup_db = os.path.join(path_archive_dir_DB, "%s_%s_DB.zip") % (date_time, service_name,) # Название архива с DB
+file_backup_log = os.path.join(path_archive_dir_LOG, "%s_%s_LOG.zip") % (date_time, service_name,) # Название архива с LOG
 
-path_src_dir_DB = r'C:\oracle\oradata\DB_NAME'
-path_src_dir_LOG = r'C:\oracle\oradata\LOG'
+path_src_dir_DB = r'C:\oracle\oradata\DB_NAME' # Полнуй путь к папке с БД
+path_src_dir_LOG = r'C:\oracle\oradata\LOG' # Полнуй путь к папке с логами сервера
+path_src_dir_LOG_arch = r'F:\Oracle\admin\PHZ\arch' # Полнуй путь к папке с логами сервера, надо для читски логов
 
-share_server = r'\\server\oracle_backup'
+share_server = r'\\server\oracle_backup' # Путь к шаре удаленного сервере, куда будут переносится архивы
 ########## END PATH CONFIGURATION
 
 ########## LOG CONFIGURATION
-path_log = os.path.join(PROJECT_PATH, 'logs/%s_%s.log') % (service_name, date_time,)
-logging.basicConfig(filename=path_log,format='%(asctime)s %(levelname)s %(message)s',level=logging.DEBUG)
-
+path_log = os.path.join(PROJECT_PATH, 'logs/%s_%s.log') % (service_name, date_time,) # Полнуй путь к папке с логами работы oracle-cold-backup
+logging.basicConfig(filename=path_log,format='%(asctime)s %(levelname)s %(message)s',level=logging.DEBUG) # Формат логирования
 # Возможные сообщения
 # logging.debug('This is a debug message')
 # logging.info('This is an info message')
@@ -91,6 +91,8 @@ def zip_folder(folder_path, output_path):
     parent_folder = os.path.dirname(folder_path)
     # путь к папке
     contents = os.walk(folder_path)
+    del_file_msg_00 = u'==================Архивация папки %s============' % folder_path
+    logging.info(del_file_msg_00)
     try:
         zip_file = zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True)
         for root, folders, files in contents:
@@ -99,20 +101,20 @@ def zip_folder(folder_path, output_path):
                 absolute_path = os.path.join(root, folder_name)
                 relative_path = absolute_path.replace(parent_folder + '\\','')
                 # Логируем процесс
-                add_arv_msg_00 = u"Файл %s добавлен в архив" % absolute_path
-                logging.info(add_arv_msg_00)
+                add_arv_msg_01 = u"Файл %s добавлен в архив" % absolute_path
+                logging.info(add_arv_msg_01)
                 # Запись архива
                 zip_file.write(absolute_path, relative_path)
             for file_name in files:
                 absolute_path = os.path.join(root, file_name)
                 relative_path = absolute_path.replace(parent_folder + '\\','')
                 # Логируем процесс
-                add_arv_msg_01 = u"Файл %s добавлен в архив." % absolute_path
-                logging.info(add_arv_msg_01)
+                add_arv_msg_02 = u"Файл %s добавлен в архив." % absolute_path
+                logging.info(add_arv_msg_02)
                 # Запись архива
                 zip_file.write(absolute_path, relative_path)
-        add_arv_msg_02 = u"Архив %s успешно создан." % output_path.replace(PROJECT_PATH,'')
-        logging.info(add_arv_msg_02)
+        add_arv_msg_03 = u"Архив %s успешно создан." % output_path.replace(PROJECT_PATH,'')
+        logging.info(add_arv_msg_03)
     except (IOError, OSError, zipfile.BadZipfile, zipfile.LargeZipFile), message:
         logging.error(message)
         sys.exit(1)
@@ -122,6 +124,8 @@ def zip_folder(folder_path, output_path):
 
 ########## DEL OLD ORACLE LOG
 def del_log_file(folder):
+    del_file_msg_00 = u'==================Удаление старых логов БД============'
+    logging.info(del_file_msg_00)
     for the_file in os.listdir(folder):
         file_path = os.path.join(folder, the_file)
         try:
@@ -137,12 +141,15 @@ def del_log_file(folder):
 if __name__ == '__main__':
     # Остановка службы
     service_manager("stop", service_name)
+    # Пауза 60 секунд
+    logging.info("Pause 60 sec")
+    time.sleep(60)
     # Архивация DB
     zip_folder(path_src_dir_DB, file_backup_db)
     # Архивация LOG
     zip_folder(path_src_dir_LOG, file_backup_log)
     # Чистка логов
-    del_log_file(path_src_dir_LOG)
+    del_log_file(path_src_dir_LOG_arch)
     # Перенос DB архива на другой сервер, с логированием
     try:
         shutil.move(file_backup_db, share_server)
